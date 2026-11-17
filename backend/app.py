@@ -49,6 +49,38 @@ def add_product():
     cur.close()
     conn.close()
     return jsonify({"id": new_id, "message": "Product added"}), 201
+@app.route("/customers", methods=["GET"])
+def get_customers():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, email FROM customers")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
 
+    customers = []
+    for row in rows:
+        customers.append({
+            "id": row[0],
+            "name": row[1],
+            "email": row[2]
+        })
+    return jsonify(customers)
+
+
+@app.route("/customers", methods=["POST"])
+def add_customer():
+    data = request.get_json()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO customers (name, email) VALUES (%s, %s) RETURNING id",
+        (data["name"], data["email"])
+    )
+    new_id = cur.fetchone()[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"id": new_id, "message": "Customer added"}), 201
 if __name__ == "__main__":
     app.run(debug=True)
