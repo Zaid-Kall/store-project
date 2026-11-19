@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Store</title>
+<style>
+body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 10px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+input, select, button { padding: 6px; margin: 3px; }
+</style>
+</head>
+<body>
+<h1>Store</h1>
+
+<h2>Products</h2>
+<table id="products"></table>
+<input id="pname" placeholder="Name">
+<input id="pprice" type="number" placeholder="Price">
+<input id="pstock" type="number" placeholder="Stock">
+<button onclick="addProduct()">Add product</button>
+
+<h2>Customers</h2>
+<table id="customers"></table>
+<input id="cname" placeholder="Name">
+<input id="cemail" placeholder="Email">
+<button onclick="addCustomer()">Add customer</button>
+
+<h2>New order</h2>
+<select id="ocustomer"></select>
+<select id="oproduct"></select>
+<input id="oquantity" type="number" value="1" min="1">
+<button onclick="createOrder()">Create order</button>
+
+<h2>Orders</h2>
+<table id="orders"></table>
+
+<script>
+const API = "http://127.0.0.1:5000";
+
+async function loadProducts() {
+  const res = await fetch(API + "/products");
+  const products = await res.json();
+  let html = "<tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th></tr>";
+  let options = "";
+  for (const p of products) {
+    html += "<tr><td>" + p.id + "</td><td>" + p.name + "</td><td>" + p.price + "</td><td>" + p.stock + "</td></tr>";
+    options += '<option value="' + p.id + '">' + p.name + "</option>";
+  }
+  document.getElementById("products").innerHTML = html;
+  document.getElementById("oproduct").innerHTML = options;
+}
+
+async function loadCustomers() {
+  const res = await fetch(API + "/customers");
+  const customers = await res.json();
+  let html = "<tr><th>ID</th><th>Name</th><th>Email</th></tr>";
+  let options = "";
+  for (const c of customers) {
+    html += "<tr><td>" + c.id + "</td><td>" + c.name + "</td><td>" + c.email + "</td></tr>";
+    options += '<option value="' + c.id + '">' + c.name + "</option>";
+  }
+  document.getElementById("customers").innerHTML = html;
+  document.getElementById("ocustomer").innerHTML = options;
+}
+
+async function loadOrders() {
+  const res = await fetch(API + "/orders");
+  const orders = await res.json();
+  let html = "<tr><th>Order</th><th>Customer</th><th>Product</th><th>Quantity</th><th>Price</th></tr>";
+  for (const o of orders) {
+    html += "<tr><td>" + o.order_id + "</td><td>" + o.customer + "</td><td>" + o.product + "</td><td>" + o.quantity + "</td><td>" + o.price + "</td></tr>";
+  }
+  document.getElementById("orders").innerHTML = html;
+}
+
+async function addProduct() {
+  await fetch(API + "/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: document.getElementById("pname").value,
+      price: Number(document.getElementById("pprice").value),
+      stock: Number(document.getElementById("pstock").value)
+    })
+  });
+  loadProducts();
+}
+
+async function addCustomer() {
+  await fetch(API + "/customers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: document.getElementById("cname").value,
+      email: document.getElementById("cemail").value
+    })
+  });
+  loadCustomers();
+}
+
+async function createOrder() {
+  await fetch(API + "/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customer_id: Number(document.getElementById("ocustomer").value),
+      items: [{
+        product_id: Number(document.getElementById("oproduct").value),
+        quantity: Number(document.getElementById("oquantity").value)
+      }]
+    })
+  });
+  loadOrders();
+}
+
+loadProducts();
+loadCustomers();
+loadOrders();
+</script>
+</body>
+</html>

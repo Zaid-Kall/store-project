@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import psycopg2
 
 app = Flask(__name__)
-
+CORS(app)
 def get_connection():
     return psycopg2.connect(
         host="localhost",
